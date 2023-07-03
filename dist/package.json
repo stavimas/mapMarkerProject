@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "ag-grid-community": "^30.0.2",
     "leaflet": "^1.9.4"
   },
   "devDependencies": {

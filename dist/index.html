@@ -2,18 +2,24 @@
 <html>
 <head>
 
-<title>leaflet example</title>
+<title>leaflet proj</title>
 <meta charset="utf-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link rel="stylesheet" href="node_modules/leaflet/dist/leaflet.css">
 <link rel="stylesheet" href="style.css">
+<script src="node_modules/ag-grid-community/dist/ag-grid-community.min.js"></script>
 </head>
 <body>
 
 <div id="map"></div>
+<div class="wrapper">
+    <!-- <input type="text" id="filter-text-box" placeholder="Поиск..." class=" header inputForm"> -->
+    <div id="grid" class="ag-theme-alpine table"></div>
+</div>
 
 <script src="bundle.js"></script>
+
 </body>
 </html>

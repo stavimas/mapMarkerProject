@@ -3,7 +3,7 @@ let L = require('leaflet');
 L.Icon.Default.imagePath = 'node_modules/leaflet/dist/images/';
 
 let map = L.map('map');
-map.setView([47.63, -122.32], 11);
+map.setView([-77.039882, 38.898321], 11);
 
 L.tileLayer(
     "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -13,6 +13,8 @@ L.tileLayer(
       tileSize: 256
     }
   ).addTo(map);
+
+new L.GeoJSON(bars).addTo(map);
 },{"leaflet":2}],2:[function(require,module,exports){
 /* @preserve
  * Leaflet 1.9.4, a JS library for interactive maps. https://leafletjs.com
