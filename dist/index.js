@@ -105,13 +105,5 @@ async function initFirstLayerTable() {
   return 0;
 }
 
-// const nameInput = document.getElementById('filter-text-box')
-// nameInput.addEventListener('input', filterGrid)
-
-// async function filterGrid() {
-//   let gridOptions = await initFirstLayerTable()
-//   gridOptions.api.setQuickFilter(document.getElementById('filter-text-box').value)
-// }
-
 initFirstLayerGroup();
 initFirstLayerTable();
