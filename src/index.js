@@ -29,8 +29,8 @@ async function fetchFirstLayerData() {
 async function initFirstLayerGroup() {
   fetchFirstLayerData().then(data => {
     data.features.forEach((f) => {
-      alert(typeof f.geometry.coordinates.reverse())
-      alert(typeof f.geometry.coordinates.reverse()[0])
+      // alert(typeof f.geometry.coordinates.reverse())
+      // alert(typeof f.geometry.coordinates.reverse()[0])
       layerFirstGroup.addLayer(
         L.circleMarker(f.geometry.coordinates.reverse()).bindPopup(
           `<b>${f.properties.name}</b><br/>${f.properties.address}`
@@ -222,10 +222,36 @@ async function initSecondLayerTable() {
   return 0;
 }
 
-// initFirstLayerGroup();
-// initFirstLayerTable();
-initSecondLayerGroup();
-initSecondLayerTable();
+map.on("baselayerchange", function(e) {
+  activeBaseLayer = e.name;
 
-// "start": "beefy index.js:bundle.js --live",
-//     "bundle": "browserify index.js -o bundle.js"
+  const placesGrid = document.getElementById('grid');
+  while (placesGrid.firstChild) {
+    placesGrid.removeChild(placesGrid.lastChild);
+  }
+
+  let layers = [] 
+  switch(e.name) {
+    case 'layer1':
+      layerFirstGroup.eachLayer(layer => layers.push(layer));
+      initFirstLayerTable();
+      break;
+    case 'layer2':
+      layerSecondGroup.eachLayer(layer => layers.push(layer));
+      initSecondLayerTable();
+      break;
+  }
+
+  if (layers.length != 0) {
+    let group = L.featureGroup(layers);
+    map.fitBounds(group.getBounds());
+  }
+
+});
+
+async function initAllLayers() {
+  await initFirstLayerGroup();
+  await initFirstLayerTable();
+  await initSecondLayerGroup();
+}
+initAllLayers();
