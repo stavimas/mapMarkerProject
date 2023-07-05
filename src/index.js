@@ -255,7 +255,8 @@ async function initSecondLayerTable() {
     //фильтрация на карте после фильтрации в таблице
     onFilterChanged: function(e) {
       layerSecondGroup.clearLayers(); 
-
+      // sessionStorage.setItem('lat', e.data.lon)
+      // sessionStorage.setItem('lon', e.data.lat)
       //console.log(gridOptions.api.getFilterModel().name_ru.filter)
       if (gridOptions.api.getFilterModel().name_ru?.filter) { sessionStorage.setItem('filterSecondLayer', gridOptions.api.getFilterModel().name_ru.filter) }
       gridOptions.api.forEachNodeAfterFilter(node => {
@@ -350,6 +351,11 @@ function showPresentation() {
   map.setView([coordinates.lat, coordinates.lng], 18);
   layer.togglePopup();
   lastIndex += 1;
+
+  sessionStorage.setItem('lat', coordinates.lng)
+  sessionStorage.setItem('lon', coordinates.lat)
+  sessionStorage.setItem('maxZoom', 18)
+
   if (lastIndex === layers.length) {
     stopPresentation();
   }
