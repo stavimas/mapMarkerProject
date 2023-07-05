@@ -117,7 +117,7 @@ async function initFirstLayerTable() {
     onGridReady: (event) => {
       event.api.sizeColumnsToFit();
       const filter = {name :{
-        filter: sessionStorage.getItem('filter'),
+        filter: sessionStorage.getItem('filterFirstLayer'),
         filterType: "text",
         type: "contains"
       }}
@@ -128,6 +128,7 @@ async function initFirstLayerTable() {
     onFilterChanged: function() {
       layerFirstGroup.clearLayers(); 
       gridOptions.api.forEachNodeAfterFilter(node => {
+        if (gridOptions.api.getFilterModel().name?.filter) { sessionStorage.setItem('filterFirstLayer', gridOptions.api.getFilterModel().name.filter) }
         layerFirstGroup.addLayer(
           L.circleMarker([node.data.lng, node.data.lat]).bindPopup(
             `<b>${node.data.name}</b><br/>${node.data.address}`
@@ -244,7 +245,7 @@ async function initSecondLayerTable() {
     onGridReady: (event) => { 
       event.api.sizeColumnsToFit();
       const filter = {name_ru :{
-        filter: sessionStorage.getItem('filter'),
+        filter: sessionStorage.getItem('filterSecondLayer'),
         filterType: "text",
         type: "contains"
       }}
@@ -255,8 +256,8 @@ async function initSecondLayerTable() {
     onFilterChanged: function(e) {
       layerSecondGroup.clearLayers(); 
 
-      console.log(gridOptions.api.getFilterModel().name_ru.filter)
-      sessionStorage.setItem('filter', gridOptions.api.getFilterModel().name_ru.filter)
+      //console.log(gridOptions.api.getFilterModel().name_ru.filter)
+      if (gridOptions.api.getFilterModel().name_ru?.filter) { sessionStorage.setItem('filterSecondLayer', gridOptions.api.getFilterModel().name_ru.filter) }
       gridOptions.api.forEachNodeAfterFilter(node => {
         layerSecondGroup.addLayer(
           L.circleMarker([node.data.lat, node.data.lon]).bindPopup(
