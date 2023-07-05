@@ -12,17 +12,11 @@
   "license": "ISC",
   "dependencies": {
     "ag-grid-community": "^30.0.2",
-    "csvtojson": "^2.0.10",
-    "leaflet": "^1.9.4"
+    "leaflet": "^1.9.4",
+    "uglify-js": "^3.17.4"
   },
   "devDependencies": {
     "beefy": "^2.1.8",
-    "browserify": "^17.0.0",
-    "css-loader": "^6.8.1",
-    "html-webpack-plugin": "^5.5.3",
-    "style-loader": "^3.3.3",
-    "webpack": "^5.88.1",
-    "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^4.15.1"
+    "browserify": "^17.0.0"
   }
 }

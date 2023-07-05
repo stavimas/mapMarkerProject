@@ -1,7 +1,7 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 // import csvToJson from 'csvtojson'
 // import L from 'leaflet'
-const L = require('leaflet')
+const L = require('leaflet');
 let map = L.map('map');
 map.setView([38.898321, -77.039882], 9, {animate: true});
 
@@ -30,8 +30,8 @@ async function fetchFirstLayerData() {
 async function initFirstLayerGroup() {
   fetchFirstLayerData().then(data => {
     data.features.forEach((f) => {
-      alert(typeof f.geometry.coordinates.reverse())
-      alert(typeof f.geometry.coordinates.reverse()[0])
+      // alert(typeof f.geometry.coordinates.reverse())
+      // alert(typeof f.geometry.coordinates.reverse()[0])
       layerFirstGroup.addLayer(
         L.circleMarker(f.geometry.coordinates.reverse()).bindPopup(
           `<b>${f.properties.name}</b><br/>${f.properties.address}`
@@ -142,17 +142,21 @@ function csvJSON(csv){
 }
 
 async function initSecondLayerGroup() {
-  let data =  fetchSecondLayerData()
+  let data = await fetchSecondLayerData()
   data.forEach((f) => {
-    alert(typeof f["lat"])
-    alert(parseFloat(f["lat"]))
-    alert(JSON.stringify(f))
+    // alert(typeof f["lat"])
+    // alert(parseFloat(f["lat"]))
+    // alert(JSON.stringify(f))
     let f1 = parseFloat(f["lat"])
     let f2 = parseFloat(f["lon"])
+    //console.log(f1, f2);
     //alert(typeof f1)
-    layerSecondGroup.addLayer(
-      L.circleMarker(L.latLng(f1, f2))
-    );
+    if (f1 && f2) {
+      layerSecondGroup.addLayer(
+        L.circleMarker(L.latLng(f1, f2)).bindPopup(
+          `<b>${f.name_ru}</b><br/>${f.name_en}`)
+      );
+    }
   });
   
     layerSecondGroup.addTo(map);
@@ -163,30 +167,24 @@ async function initSecondLayerGroup() {
 async function initSecondLayerTable() {
 
   let data = await fetchSecondLayerData();
-  data = data.features;
-  let props = Object.keys(data[0].properties);
   let columnDefs = [];
   let rowData = [];
 
-  props.forEach(p => {
-    let a = {field: `${p}`};
-    columnDefs.push(a);
-  })
+  columnDefs.push({field: 'name_en'});
+  columnDefs.push({field: 'name_ru'});
+  columnDefs.push({field: 'escalator'});
   columnDefs.push({field: 'lat'});
-  columnDefs.push({field: 'lng'});
+  columnDefs.push({field: 'lon'});
+  columnDefs.push({field: 'min_rail_width'});
+
   columnDefs.find((item) => {
-    if (item.field == 'name') {
+    if (item.field == 'name_ru') {
       item.filter = true;
     }
   })
 
   data.forEach(d => {
-    let latLng = {
-      lat: `${d.geometry.coordinates[0]}`,
-      lng: `${d.geometry.coordinates[1]}`
-    };
-    latLng = Object.assign(latLng, d.properties)
-    rowData.push(latLng);
+    rowData.push(d);
   })
 
   const placesGrid = document.querySelector('#grid');
@@ -198,9 +196,9 @@ async function initSecondLayerTable() {
     onRowClicked: function(e) {
       layerSecondGroup.eachLayer((layer) => {
           const coords = layer.getLatLng()
-          if (coords.lat == e.data.lng && coords.lng == e.data.lat) {
+          if (coords.lat == e.data.lat && coords.lng == e.data.lon) {
             layer.openPopup()
-            map.setView([e.data.lng, e.data.lat], 18, {animate: true})
+            map.setView([e.data.lat, e.data.lon], 18, {animate: true})
           }
         })
       },
@@ -212,8 +210,8 @@ async function initSecondLayerTable() {
       layerSecondGroup.clearLayers(); 
       gridOptions.api.forEachNodeAfterFilter(node => {
         layerSecondGroup.addLayer(
-          L.circleMarker([node.data.lng, node.data.lat]).bindPopup(
-            `<b>${node.data.name}</b><br/>${node.data.address}`
+          L.circleMarker([node.data.lat, node.data.lon]).bindPopup(
+            `<b>${node.data.name_ru}</b><br/>${node.data.name_en}`
           )
         );
       });
@@ -225,13 +223,82 @@ async function initSecondLayerTable() {
   return 0;
 }
 
-initFirstLayerGroup();
-initFirstLayerTable();
-//initSecondLayerGroup();
-//initSecondLayerTable();
+map.on("baselayerchange", function(e) {
 
-// "start": "beefy index.js:bundle.js --live",
-//     "bundle": "browserify index.js -o bundle.js"
+  const placesGrid = document.getElementById('grid');
+  while (placesGrid.firstChild) {
+    placesGrid.removeChild(placesGrid.lastChild);
+  }
+
+  let layers = [] 
+  switch(e.name) {
+    case 'layer1':
+      layerFirstGroup.eachLayer(layer => layers.push(layer));
+      initFirstLayerTable();
+      break;
+    case 'layer2':
+      layerSecondGroup.eachLayer(layer => layers.push(layer));
+      initSecondLayerTable();
+      break;
+  }
+
+  if (layers.length != 0) {
+    let group = L.featureGroup(layers);
+    map.fitBounds(group.getBounds());
+  }
+
+});
+
+async function initAllLayers() {
+  await initFirstLayerGroup();
+  await initFirstLayerTable();
+  await initSecondLayerGroup();
+}
+
+const presBtn = document.getElementById('presentation_btn')
+let timer;
+let stopPresFlag = true;
+let lastIndex = 0;
+
+
+presBtn.addEventListener('click', () => {
+  if (!stopPresFlague) {
+    clearTimeout(timer);
+    lastIndex = 0;
+    stopPresFlague = true;
+  }
+  else {
+    stopPresFlague = false;
+    showPresentation();
+  }
+})
+
+function showPresentation() {
+  const layers = []
+  const activeLayerName = layerControl.getActiveBaseLayer().name;
+  switch (activeLayerName) {
+    case 'layer1':
+      layerFirstGroup.eachLayer((layer) => layers.push(layer));
+      break;
+    case 'layer2':
+      layerSecondGroup.eachLayer((layer) => layers.push(layer));
+      break;
+  }
+
+  const layer = layers[lastIndex];
+  const coordinates = layer.getLatLng();
+  map.setView([coords.lat, coords.lng], 18);
+  layer.togglePopup();
+  lastIndex += 1;
+  if (lastIndex === layers.length) {
+    lastIndex = 0;
+  }
+  if (!stopPresFlag) {
+    timer = setTimeout(() => showPresentation(), 1000);
+  }
+}
+
+initAllLayers();
 },{"leaflet":2}],2:[function(require,module,exports){
 /* @preserve
  * Leaflet 1.9.4, a JS library for interactive maps. https://leafletjs.com

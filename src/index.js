@@ -1,8 +1,24 @@
-// import csvToJson from 'csvtojson'
 // import L from 'leaflet'
-const L = require('leaflet')
+
+const L = require('leaflet');
 let map = L.map('map');
-map.setView([38.898321, -77.039882], 9, {animate: true});
+
+//console.log(sessionStorage.getItem('lon'))
+let lon = sessionStorage.getItem('lon') ? sessionStorage.getItem('lon') : 38.898321
+let lat = sessionStorage.getItem('lat') ? sessionStorage.getItem('lat') : -77.039882
+let activeBaseLayer = sessionStorage.getItem('activeBaseLayer') ? sessionStorage.getItem('activeBaseLayer'): 'layer1';
+let maxZoom = sessionStorage.getItem('maxZoom') ? sessionStorage.getItem('maxZoom'): 9;
+
+console.log(lon)
+console.log(lat)
+console.log(activeBaseLayer)
+
+map.setView([lon, lat], maxZoom, {animate: true});
+
+sessionStorage.setItem('activeBaseLayer', activeBaseLayer)
+sessionStorage.setItem('lon', lon)
+sessionStorage.setItem('lat', lat)
+sessionStorage.setItem('maxZoom', maxZoom)
 
 L.Icon.Default.imagePath = 'node_modules/leaflet/dist/images/';
 
@@ -19,13 +35,14 @@ L.tileLayer(
     }
   ).addTo(map);
 
-
+//Получение данных для первого слоя
 async function fetchFirstLayerData() {
   let response = await fetch('./bars.geojson');
   let data = await response.json();
   return data;
 }
 
+//Инициализация первого слоя
 async function initFirstLayerGroup() {
   fetchFirstLayerData().then(data => {
     data.features.forEach((f) => {
@@ -38,12 +55,16 @@ async function initFirstLayerGroup() {
       );
     });
   
-    layerFirstGroup.addTo(map);
+    if (activeBaseLayer == "layer1") {
+      layerFirstGroup.addTo(map);
+      initFirstLayerTable();
+    }
   
     layerControl.addBaseLayer(layerFirstGroup, "layer1");
   })
 }
 
+//Инициализация таблицы первого слоя
 async function initFirstLayerTable() {
 
   let data = await fetchFirstLayerData();
@@ -85,11 +106,23 @@ async function initFirstLayerTable() {
           if (coords.lat == e.data.lng && coords.lng == e.data.lat) {
             layer.openPopup()
             map.setView([e.data.lng, e.data.lat], 18, {animate: true})
+            sessionStorage.setItem('lat', e.data.lat)
+            sessionStorage.setItem('lon', e.data.lng)
+            sessionStorage.setItem('maxZoom', 18)
+            console.log(sessionStorage.getItem('lat'))
           }
         })
       },
 
-    onGridReady: (event) => event.api.sizeColumnsToFit(),
+    onGridReady: (event) => {
+      event.api.sizeColumnsToFit();
+      const filter = {name :{
+        filter: sessionStorage.getItem('filter'),
+        filterType: "text",
+        type: "contains"
+      }}
+      gridOptions.api.setFilterModel(filter);
+    },
 
     //фильтрация на карте после фильтрации в таблице
     onFilterChanged: function() {
@@ -109,21 +142,18 @@ async function initFirstLayerTable() {
   return 0;
 }
 
-
+//Получение данных для второго слоя
 async function fetchSecondLayerData() {
   let response = await fetch('./portals.csv');
   let text = await response.text();
-  return csvJSON(text.toString())
+  let data = csvJSON(text.toString())
   //let text = await response.text();
-  //let data = await csvToJson().fromString(text.toString());
-  //let data = await csvToJson().fromFile("portals.csv")
   //let contData = JSON.stringify(data, null, 2);
-  // let response = await fetch('./ruPortals.geojson');
-  // let data = await response.json();
   //console.log(contData)
   return data;
 }
 
+//Перегонка csv в json
 function csvJSON(csv){
   var lines=csv.split("\n");
   var result = [];
@@ -140,6 +170,7 @@ function csvJSON(csv){
   //return JSON.stringify(result); //JSON
 }
 
+//Инициализация второго слоя
 async function initSecondLayerGroup() {
   let data = await fetchSecondLayerData()
   data.forEach((f) => {
@@ -157,12 +188,17 @@ async function initSecondLayerGroup() {
       );
     }
   });
-  
-    layerSecondGroup.addTo(map);
-  
+
+    if (activeBaseLayer == "layer2") {
+      layerSecondGroup.addTo(map);
+      await initSecondLayerTable();
+    }
     layerControl.addBaseLayer(layerSecondGroup, "layer2");
+    sessionStorage.setItem('lat', 37.7162886)
+    sessionStorage.setItem('lon', 55.7516306)
 }
 
+//Инициализация таблицы второго слоя
 async function initSecondLayerTable() {
 
   let data = await fetchSecondLayerData();
@@ -198,18 +234,32 @@ async function initSecondLayerTable() {
           if (coords.lat == e.data.lat && coords.lng == e.data.lon) {
             layer.openPopup()
             map.setView([e.data.lat, e.data.lon], 18, {animate: true})
+            sessionStorage.setItem('lat', e.data.lon)
+            sessionStorage.setItem('lon', e.data.lat)
+            sessionStorage.setItem('maxZoom', 18)
           }
         })
       },
 
-    onGridReady: (event) => event.api.sizeColumnsToFit(),
+    onGridReady: (event) => { 
+      event.api.sizeColumnsToFit();
+      const filter = {name_ru :{
+        filter: sessionStorage.getItem('filter'),
+        filterType: "text",
+        type: "contains"
+      }}
+      gridOptions.api.setFilterModel(filter);
+    },
 
     //фильтрация на карте после фильтрации в таблице
-    onFilterChanged: function() {
+    onFilterChanged: function(e) {
       layerSecondGroup.clearLayers(); 
+
+      console.log(gridOptions.api.getFilterModel().name_ru.filter)
+      sessionStorage.setItem('filter', gridOptions.api.getFilterModel().name_ru.filter)
       gridOptions.api.forEachNodeAfterFilter(node => {
         layerSecondGroup.addLayer(
-          L.circleMarker([node.data.lon, node.data.lat]).bindPopup(
+          L.circleMarker([node.data.lat, node.data.lon]).bindPopup(
             `<b>${node.data.name_ru}</b><br/>${node.data.name_en}`
           )
         );
@@ -222,9 +272,12 @@ async function initSecondLayerTable() {
   return 0;
 }
 
+//изменение слоя
 map.on("baselayerchange", function(e) {
-  activeBaseLayer = e.name;
-
+  const hashArray = window.location.hash.split('/');
+  hashArray[0] = e.name;
+  sessionStorage.setItem('activeBaseLayer', e.name)
+  window.location.hash = hashArray.join('/');
   const placesGrid = document.getElementById('grid');
   while (placesGrid.firstChild) {
     placesGrid.removeChild(placesGrid.lastChild);
@@ -235,10 +288,14 @@ map.on("baselayerchange", function(e) {
     case 'layer1':
       layerFirstGroup.eachLayer(layer => layers.push(layer));
       initFirstLayerTable();
+      sessionStorage.setItem('lat', -77.039882)
+      sessionStorage.setItem('lon', 38.898321 )
       break;
     case 'layer2':
       layerSecondGroup.eachLayer(layer => layers.push(layer));
       initSecondLayerTable();
+      sessionStorage.setItem('lat', 37.7162886);
+      sessionStorage.setItem('lon', 55.7516306);
       break;
   }
 
@@ -246,12 +303,77 @@ map.on("baselayerchange", function(e) {
     let group = L.featureGroup(layers);
     map.fitBounds(group.getBounds());
   }
-
+  stopPresentation();
 });
 
 async function initAllLayers() {
   await initFirstLayerGroup();
-  await initFirstLayerTable();
   await initSecondLayerGroup();
 }
+
+
+//Презентация
+const presBtn = document.getElementById('presentation_btn')
+let timer;
+let stopPresFlague = true;
+let lastIndex = 0;
+
+
+presBtn.addEventListener('click', (e) => {
+  if (!stopPresFlague) {
+    stopPresentation();
+  }
+  else {
+    stopPresFlague = false;
+    let btn = document.getElementById('presentation_btn')
+    btn.textContent = "Stop presentation"
+    showPresentation();
+  }
+})
+
+function showPresentation() {
+  const layers = []
+  let activeLayerName = sessionStorage.getItem('activeBaseLayer');
+  //console.log(activeLayerName)
+  switch (activeLayerName) {
+    case 'layer1':
+      layerFirstGroup.eachLayer((layer) => layers.push(layer));
+      break;
+    case 'layer2':
+      layerSecondGroup.eachLayer((layer) => layers.push(layer));
+      break;
+  }
+
+  const layer = layers[lastIndex];
+  const coordinates = layer.getLatLng();
+  map.setView([coordinates.lat, coordinates.lng], 18);
+  layer.togglePopup();
+  lastIndex += 1;
+  if (lastIndex === layers.length) {
+    stopPresentation();
+  }
+  if (!stopPresFlague) {
+    timer = setTimeout(() => showPresentation(), 1000);
+  }
+}
+
+function stopPresentation() {
+  clearTimeout(timer);
+  lastIndex = 0;
+  stopPresFlague = true;
+  let btn = document.getElementById('presentation_btn')
+  btn.textContent = "Play presentation"
+}
+
+//Проверка на перезагрузку страницы
+const pageAccessedByReload = (
+  (window.performance.navigation && window.performance.navigation.type === 1) ||
+    window.performance
+      .getEntriesByType('navigation')
+      .map((nav) => nav.type)
+      .includes('reload')
+);
+
+console.log(`Флаг перезагрузки страницы: ${pageAccessedByReload}`);
+
 initAllLayers();
