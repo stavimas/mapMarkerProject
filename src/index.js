@@ -1,5 +1,3 @@
-// import L from 'leaflet'
-
 const L = require('leaflet');
 let map = L.map('map');
 
@@ -74,7 +72,7 @@ async function initFirstLayerTable() {
   let rowData = [];
 
   props.forEach(p => {
-    let a = {field: `${p}`};
+    let a = {field: p};
     columnDefs.push(a);
   })
   columnDefs.push({field: 'lat'});
@@ -87,8 +85,8 @@ async function initFirstLayerTable() {
 
   data.forEach(d => {
     let latLng = {
-      lat: `${d.geometry.coordinates[0]}`,
-      lng: `${d.geometry.coordinates[1]}`
+      lat: d.geometry.coordinates[0],
+      lng: d.geometry.coordinates[1]
     };
     latLng = Object.assign(latLng, d.properties)
     rowData.push(latLng);
