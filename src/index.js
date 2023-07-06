@@ -1,4 +1,10 @@
-const L = require('leaflet');
+import 'leaflet/dist/leaflet.css';
+import * as L from 'leaflet';
+import * as agGrid from 'ag-grid-community'
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
+import { fetchFirstLayerData, fetchSecondLayerData } from './loadData.js'
+
 let map = L.map('map');
 
 //console.log(sessionStorage.getItem('lon'))
@@ -33,12 +39,6 @@ L.tileLayer(
     }
   ).addTo(map);
 
-//Получение данных для первого слоя
-async function fetchFirstLayerData() {
-  let response = await fetch('./bars.geojson');
-  let data = await response.json();
-  return data;
-}
 
 //Инициализация первого слоя
 async function initFirstLayerGroup() {
@@ -139,34 +139,6 @@ async function initFirstLayerTable() {
   new agGrid.Grid(placesGrid, gridOptions);
   
   return 0;
-}
-
-//Получение данных для второго слоя
-async function fetchSecondLayerData() {
-  let response = await fetch('./portals.csv');
-  let text = await response.text();
-  let data = csvJSON(text.toString())
-  //let text = await response.text();
-  //let contData = JSON.stringify(data, null, 2);
-  //console.log(contData)
-  return data;
-}
-
-//Перегонка csv в json
-function csvJSON(csv){
-  var lines=csv.split("\n");
-  var result = [];
-  var headers=lines[0].split(";");
-  for(var i=1;i<lines.length;i++){
-      var obj = {};
-      var currentline=lines[i].split(";");
-      for(var j=0;j<headers.length;j++){
-          obj[headers[j]] = currentline[j];
-      }
-      result.push(obj);
-  }
-  return result; //JavaScript object
-  //return JSON.stringify(result); //JSON
 }
 
 //Инициализация второго слоя
@@ -371,14 +343,23 @@ function stopPresentation() {
 }
 
 //Проверка на перезагрузку страницы
-const pageAccessedByReload = (
-  (window.performance.navigation && window.performance.navigation.type === 1) ||
-    window.performance
-      .getEntriesByType('navigation')
-      .map((nav) => nav.type)
-      .includes('reload')
-);
+// const pageAccessedByReload = (
+//   (window.performance.navigation && window.performance.navigation.type === 1) ||
+//     window.performance
+//       .getEntriesByType('navigation')
+//       .map((nav) => nav.type)
+//       .includes('reload')
+// );
 
-console.log(`Флаг перезагрузки страницы: ${pageAccessedByReload}`);
+// console.log(`Флаг перезагрузки страницы: ${pageAccessedByReload}`);
 
 initAllLayers();
+// import { testVar } from './test';
+// console.log('olololoqweqweqwe', testVar);
+
+// const object = {
+//     first: 1,
+//     second: 2
+// }
+
+// console.log(object?.third);

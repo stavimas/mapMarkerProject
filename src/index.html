@@ -1,27 +1,24 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-
-<title>leaflet proj</title>
-<meta charset="utf-8">
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<link rel="stylesheet" href="node_modules/leaflet/dist/leaflet.css">
-<link rel="stylesheet" href="style.css">
-<script src="node_modules/ag-grid-community/dist/ag-grid-community.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>leaflet proj</title>
+    <link href="styles.css" rel="stylesheet">
 </head>
+
 <body>
+    <div id="map"></div>
+    <div class="wrapper">
+        <div id="grid" class="ag-theme-alpine table"></div>
+    </div>
+    <div> 
+        <button class="presentation" id="presentation_btn">Play presentation</button>
+    </div>
 
-<div id="map"></div>
-<div class="wrapper">
-    <div id="grid" class="ag-theme-alpine table"></div>
-</div>
-<div> 
-    <button class="presentation" id="presentation_btn">Play presentation</button>
-</div>
-
-<script src="bundle.js"></script>
-
+<script src="index.js"></script>
 </body>
+
 </html>
