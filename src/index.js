@@ -3,6 +3,7 @@ import * as L from 'leaflet';
 import * as agGrid from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
+import './styles.css'
 import { fetchFirstLayerData, fetchSecondLayerData } from './loadData.js'
 
 let map = L.map('map');
