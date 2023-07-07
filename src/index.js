@@ -60,6 +60,8 @@ async function initFirstLayerGroup() {
     }
   
     layerControl.addBaseLayer(layerFirstGroup, "layer1");
+    sessionStorage.setItem('lon', 38.898321);
+    sessionStorage.setItem('lat', -77.039882);
   })
 }
 
@@ -277,6 +279,13 @@ map.on("baselayerchange", function(e) {
     map.fitBounds(group.getBounds());
   }
   stopPresentation();
+});
+
+//Отслеживание изменений карты
+map.on('moveend', function (e) {
+  sessionStorage.setItem('lat', map.getCenter().lng);
+  sessionStorage.setItem('lon', map.getCenter().lat);
+  sessionStorage.setItem('maxZoom', map.getZoom());
 });
 
 async function initAllLayers() {
